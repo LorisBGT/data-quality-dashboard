@@ -1,203 +1,131 @@
-# 📊 Data Quality Dashboard
+# Data Quality Dashboard
 
-**Production-ready Python application for automated financial data quality analysis**
+Tooling to analyse the quality of financial datasets with around 15 automated checks.
+The project is built in Python with Streamlit and Plotly, and is meant to stay simple to run locally.
 
-## Overview
+## What it does
 
-A comprehensive data quality analysis tool built with Streamlit that automatically evaluates datasets against 15 professional-grade quality checks. Designed for financial institutions handling derivatives, FX trades, and structured products.
+The app lets you:
 
-## Key Features
+- Upload a CSV or Excel file with trades/positions
+- Run a set of data quality checks on the dataset
+- Compute a global quality score between 0 and 100
+- Visualise issues (missing data, outliers, invalid values)
+- Export a short HTML report with the main results
 
-### 💡 15 Advanced Quality Checks
-1. **Missing Values Analysis** - Detects NULL/NaN values by column
-2. **Duplicate Detection** - Identifies duplicate records and TradeIDs
-3. **Data Type Validation** - Ensures date, numeric, and categorical consistency
-4. **Statistical Outlier Detection** - IQR-based outlier identification
-5. **Range Validation** - Validates numerical ranges (no negative prices/quantities)
-6. **Date Consistency** - Ensures settlement dates > trade dates
-7. **Categorical Validation** - Validates against permitted values (Status, TradeType)
-8. **Referential Integrity** - Checks for required foreign key values
-9. **Numeric Consistency** - Validates calculated fields (Value = Quantity × Price)
-10. **String Consistency** - Detects leading/trailing spaces and formatting issues
-11. **Business Logic Validation** - Checks for zero quantities/prices
-12. **Structural Completeness** - Verifies required columns exist
-13. **Timestamp Validity** - Validates time format and ranges
-14. **Distribution Analysis** - Detects highly skewed data
-15. **Data Freshness** - Monitors data age and staleness
+The checks are focused on a typical trading dataset with columns like `TradeID`, `Date`, `Instrument`, `Quantity`, `Price`, `Counterparty`, `Status`, etc.
 
-### 📏 Quality Score (0-100%)
-- Weighted scoring system
-- CRITICAL issues: -15 points
-- WARNING issues: -5 points  
-- INFO issues: -1 point
-- Color-coded status (Green ≥90%, Orange ≥70%, Red <70%)
+## Main checks
 
-### 📊 Interactive Visualizations
-- Check status overview (bar chart)
-- Missing values heatmap
-- Numeric distribution analysis
-- Trend visualizations with Plotly
+The code currently applies checks such as:
 
-### 📄 Export Capabilities
-- HTML report generation
-- Detailed check results
-- Dataset summary statistics
-- Ready for stakeholder communication
+- Missing values by column
+- Duplicate identifiers (by `TradeID` if present)
+- Basic type and date parsing issues
+- Outliers on numerical fields (IQR based)
+- Range checks (negative prices/quantities, commissions out of [0, 1])
+- Simple business rules (settlement after trade date, non-empty counterparty, etc.)
+- Basic consistency between `Quantity * Price` and `Value`
 
-### ⚡ Performance
-- **Processes 10,000+ records in < 1 minute**
-- Optimized pandas operations
-- Lazy evaluation for large datasets
-- Memory-efficient streaming
+The idea is not to be exhaustive but to cover the most common issues you meet on trade data.
 
-## Technical Stack
+## Stack
 
-```
-Python 3.8+
-Streamlit 1.28.0      # Web UI framework
-pandas 2.0.3          # Data processing
-numpy 1.24.3          # Numerical computing
-plotly 5.17.0         # Interactive visualizations
-openpyxl 3.1.2        # Excel support
-```
+- Python 3.8+
+- Streamlit for the UI
+- pandas / numpy for the data work
+- Plotly for the charts
 
-## Installation
+## Getting started
 
-### Step 1: Clone Repository
+Clone the repo and set up a virtual env:
+
 ```bash
-git clone https://github.com/yourusername/data-quality-dashboard.git
+git clone https://github.com/LorisBGT/data-quality-dashboard.git
 cd data-quality-dashboard
-```
-
-### Step 2: Create Virtual Environment
-```bash
 python3 -m venv venv
-source venv/bin/activate  # macOS/Linux
-# or
-venv\Scripts\activate     # Windows
-```
-
-### Step 3: Install Dependencies
-```bash
+source venv/bin/activate      # macOS / Linux
+# venv\Scripts\activate      # Windows
 pip install -r requirements.txt
 ```
 
-### Step 4: Generate Sample Data (Optional)
+Generate a sample dataset (optional but useful to test the app):
+
 ```bash
 python generate_dataset.py
 ```
 
-This creates `financial_trades_sample.csv` with 12,000 trades including intentional anomalies for demonstration.
+Then run the dashboard:
 
-## Usage
-
-### Quick Start
 ```bash
 streamlit run app.py
 ```
-The dashboard opens at `http://localhost:8501`
 
-### Analysis Modes
+By default Streamlit starts on `http://localhost:8501`.
 
-**Mode 1: Upload CSV/Excel**
-1. Click "Upload CSV/Excel" in sidebar
-2. Select your data file
-3. Dashboard auto-analyzes and displays results
+## How to use it
 
-**Mode 2: Use Sample Data**
-1. Ensure `financial_trades_sample.csv` exists
-2. Select "Use Sample Data"
-3. Pre-populated analysis with known anomalies
+Two ways to use the app:
 
-### Generate Report
-1. Navigate to "Export Report" section
-2. Click "Generate HTML Report"
-3. Download HTML file for sharing/documentation
+1. **Upload your own file**
+   - Go to the sidebar
+   - Choose "Upload CSV/Excel"
+   - Select a file
 
-## Dataset Requirements
+2. **Use the sample file**
+   - Run `generate_dataset.py` once
+   - Choose "Use Sample Data" in the sidebar
 
-### Recommended Columns
-```
-TradeID          : str - Unique identifier (e.g., "TRADE_000001")
-Date             : datetime - Trade execution date (YYYY-MM-DD)
-Instrument       : str - Financial instrument (EUR/USD, IRS_EUR_5Y, etc.)
-TradeType        : str - SPOT, FORWARD, SWAP, OPTION, NDF
-Quantity         : float - Trade volume (must be positive)
-Price            : float - Execution price (must be positive)
-Value            : float - Trade value (should equal Quantity × Price)
-Counterparty     : str - Trading partner name
-Status           : str - EXECUTED, PENDING, CANCELLED, SETTLED, CONFIRMED
-Commission       : float - Fee (0-1 range)
-SettlementDate   : datetime - Expected settlement date
-EntryTime        : time - Trade entry time (HH:MM:SS)
-```
+The home screen shows:
 
-### Minimum Requirements
-- At least 100 rows
-- TradeID, Date, Instrument, Quantity, Price, Status columns
-- CSV or Excel format
+- A global quality score
+- Number of rows analysed
+- Number of checks passed
+- Execution time
 
-## Example Output
+Tabs then give access to:
 
-### Console Output (generate_dataset.py)
-```
-✅ Dataset created: 12000 records
+- Detailed results for each check
+- A preview of the data
+- A few basic charts (status of checks, missing values by column, distribution of a numeric column)
 
-📊 Preview:
-                  TradeID        Date Instrument  TradeType      Quantity    Price
-0  TRADE_000001  2024-01-15      EUR/USD       SPOT     1250000.45  1.0857
-...
+You can also export a static HTML report from the bottom of the page.
 
-⚠️ Anomalies detected:
-  - Missing Quantity: 237
-  - Missing Counterparty: 241
-  - Duplicate TradeID: 236
-  - Negative Price: 244
-  - Missing Commission: 600
-```
+## Expected input
 
-### Dashboard Metrics
-```
-┌─────────────────────────────────────────┐
-│  Quality Score: 78%  │ Records: 12,000  │
-│  Checks Passed: 12/15│ Time: 0.84s      │
-└─────────────────────────────────────────┘
-Status: ⚠️ Good
-```
+The app works best with a table that looks like trading 
 
-### Check Results Sample
-```
-✅ Missing Values [OK]
-   Total missing values: 0
-   
-❌ Duplicates [CRITICAL]
-   Duplicate TradeIDs: 236 (1.97%)
-   
-⚠️ Range Validation [WARNING]
-   Negative prices: 244
-   Invalid quantities: 0
-```
+- `TradeID` (string)
+- `Date` (YYYY-MM-DD)
+- `Instrument` (FX pair, IRS, swap, etc.)
+- `TradeType` (SPOT, FORWARD, SWAP, OPTION, NDF)
+- `Quantity` (positive float)
+- `Price` (float)
+- `Value` (roughly `Quantity * Price`)
+- `Counterparty`
+- `Status` (EXECUTED, PENDING, CANCELLED, SETTLED, CONFIRMED)
+- `Commission` (0–1)
+- `SettlementDate`
+- `EntryTime`
 
-## Performance Benchmarks
+Only a subset is strictly required, but this is the structure used in the sample data.
 
-Tested on MacBook Pro 2021 (Apple Silicon M1)
+## Performance
 
-| Dataset Size | Execution Time | Memory Usage |
-|--------------|----------------|---------------|
-| 1,000 rows   | 0.12s          | 15 MB        |
-| 5,000 rows   | 0.38s          | 45 MB        |
-| 10,000 rows  | 0.76s          | 85 MB        |
-| 50,000 rows  | 3.2s           | 380 MB       |
-| 100,000 rows | 6.8s           | 720 MB       |
+On a recent laptop the app processes around 10k rows in well under a second.
+The checks are vectorised with pandas, there are no Python loops on the rows.
 
-**Key Insight:** Reduced manual quality checks from **30 minutes to 30 seconds** per dataset.
+For a small project like this, the focus is on:
 
-## Architecture
+- Keeping the code readable
+- Having a simple demo that runs locally in a few commands
+- Showing the typical data quality issues on trade data
 
-```
-data-quality-dashboard/
-├── app.py                      # Main Streamlit application
-├── generate_dataset.py         # Dataset generator with anomalies
+## Credits
+
+This repository is mainly for personal use and portfolio/demo purposes.
+Feel free to reuse the ideas or adapt the checks to your own datasets.
+taset generator with anomalies
 ├── financial_trades_sample.csv # Sample data (12,000 rows)
 ├── requirements.txt            # Python dependencies
 ├── README.md                   # Documentation
@@ -239,20 +167,20 @@ class DataQualityAnalyzer:
 ## CV Talking Points
 
 ### Quantifiable Metrics
-✅ **"Reduced manual quality checks from 30 minutes to 30 seconds"**
+**"Reduced manual quality checks from 30 minutes to 30 seconds"**
 - Manual inspection of 10,000 trades: ~30-45 min
 - Automated dashboard analysis: ~30 seconds
 - **98% time reduction**
 
-✅ **"Processes 10,000+ financial records in under 2 minutes"**
+**"Processes 10,000+ financial records in under 2 minutes"**
 - Handles 50,000 rows in ~3 seconds
 - Scalable architecture ready for production datasets
 
-✅ **"15 comprehensive quality checks for derivatives & FX data"**
+**"15 comprehensive quality checks for derivatives & FX data"**
 - Validates business logic specific to financial instruments
 - Detects anomalies across multiple dimensions
 
-✅ **"Production-ready code with error handling & visualization"**
+**"Production-ready code with error handling & visualization"**
 - Streamlit web interface for non-technical stakeholders
 - Interactive Plotly charts
 - HTML export for reporting
@@ -338,6 +266,6 @@ Questions? Issues? Reach out on GitHub Issues
 
 **Last Updated:** December 3, 2024
 **Version:** 1.0.0  
-**Status:** Production Ready ✅
+**Status:** Production Ready
 
 **Keywords for Pictet:** Data Quality, Derivatives, FX Markets, Risk Management, Python, Streamlit, Data Governance
